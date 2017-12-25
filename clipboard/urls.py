@@ -3,7 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+	
+	path('getClipboard/<str:token>',views.getClipboard,name="getClipboard"),
+	path('setClipboard/<str:data>',views.setClipboard,name="setClipboard"),
 
-	path('', views.index, name='index'),
-	path('results/<int:entry_id>',  views.results, name="results"),
 ]
