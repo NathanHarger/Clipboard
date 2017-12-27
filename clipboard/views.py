@@ -1,8 +1,8 @@
 from django.shortcuts import get_object_or_404, render,redirect
 from django.http import HttpResponse,JsonResponse
-from .forms import EntryForm
 from .models import Entry
 from django.core import serializers
+import json
 
 # Create your views here.
 
@@ -25,12 +25,13 @@ from django.core import serializers
 # 	return render(request, 'clipboard/results.html', {'token':entry.session_id})
 
 def getClipboard(request, token):
-	entry = get_object_or_404(Entry, session_id=token)
-	json = {"id":entry.session_id, "data":entry.data}
-	return JsonResponse(json)
+	entry = get_object_or_404(Entry.objects, session_id=token)
+	d = {'id':entry.session_id, 'data':entry.data}
+	return JsonResponse(d)
 
 def setClipboard(request, data):
-	newEntry = Entry(data = data)
+	
+	newEntry = Entry.objects.create(data = data)
 	newEntry.save()
-	json = {"id" : newEntry.session_id}
-	return JsonResponse(json)
+	d = {'id' : newEntry.session_id}
+	return JsonResponse(d)

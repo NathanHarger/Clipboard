@@ -25,13 +25,14 @@ SECRET_KEY = '^+ysa($tct+alt(d@3_t+hx#bnx*aiow%0tup0-$5h^it)qlnt'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["testserver",'localhost']
 
 
 # Application definition
 
 INSTALLED_APPS = [
     'clipboard.apps.ClipboardConfig',
+    'frontend.apps.FrontendConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

@@ -17,9 +17,10 @@ from django.contrib import admin
 from django.urls import include, path
 
 from clipboard import views
-
+from frontend import views
 
 urlpatterns = [
 	path('clipboard/', include('clipboard.urls')),
+        path('',include('frontend.urls')),
     path('admin/', admin.site.urls),
 ]

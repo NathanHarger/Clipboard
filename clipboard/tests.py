@@ -21,6 +21,11 @@ class Test_Session_Id(TestCase):
 		okay =(string.ascii_letters + string.digits) 
 		invalid = [j for j in sessionId if j not in okay]
 		self.assertEqual(len(invalid), 0)
+		
+	def test_session_id_length_eight(self):
+		one = Entry()
+		sessionId = one.session_id
+		self.assertEqual(len(sessionId),8)
 
 class Test_Entry_Data(TestCase):
 	def test_entries_contain_data(self):
