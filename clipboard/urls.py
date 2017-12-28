@@ -1,10 +1,14 @@
+from django.conf.urls import url
 from django.urls import path
 
 from . import views
 
 urlpatterns = [
 	
-	path('getClipboard/<str:token>',views.getClipboard,name="getClipboard"),
-	path('setClipboard/<str:data>',views.setClipboard,name="setClipboard"),
+   
+ url(r'^clipboard/$', views.EntryList.as_view()),
+    url(r'^clipboard/(?P<session_id>[a-zA-Z0-9]+)/$', views.EntryDetail.as_view()),
 
 ]
+
+
