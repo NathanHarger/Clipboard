@@ -11,9 +11,10 @@ class Entry(models.Model):
 
 	session_id =  models.CharField(max_length=8,default=get_default_id)
 	data = models.CharField(max_length = 1000)
+	creation_time = models.DateTimeField(auto_now = True)
 	
 	def __str__(self):
-		return self.session_id + " " + self.data
+		return self.session_id + " " + self.data + " " + str(self.creation_time)
 
 
 
