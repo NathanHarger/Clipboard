@@ -10,29 +10,28 @@ import requests
 def index(request):
 	form = EntryForm()
 	form1 = SessionForm()
+	
+
 	if request.method == 'POST':
-		form1 = SessionForm(request.POST)
-		if len(form1.data) != 0:
+		form = EntryForm(request.POST)
+		
+
+		if len(form.data) != 0:
 			# make call to setClipboard
-			print(form1.data)
-			r = requests.post("http://localhost:8000/api/clipboard/",data = { 'data' :form1.data['data']})
-			print(r.json())
+			r = requests.post("http://localhost:8000/api/clipboard/",data = { 'data' :form.data['entry_data']})
+			
 			json = r.json()
-			print(json['id'])
 
 			return redirect('results', data = json['id'])
 			
 	elif request.method == 'GET':
-		form = EntryForm(request.GET)
-		print(form.data)
+		form1 = SessionForm(request.GET)
 
-		if len(form.data) !=0 :
-			print(form.data)
+		if len(form1.data) !=0 :
 
 			#make call to getClipboard
-			r = requests.get("http://localhost:8000/api/clipboard/" + form.data['data'])
+			r = requests.get("http://localhost:8000/api/clipboard/" + form1.data['session_data'])
 			json = r.json()
-			print(json)
 			return redirect('results', data = json['data'])
 		else:
 			form = EntryForm()

@@ -44,8 +44,8 @@ class EntryList(APIView):
         serializer = EntrySerializer(entries, many=True)
         return Response(serializer.data)
 
+    #create new entry and return the id 
     def post(self, request, format=None):
-        print("ran")
         d = Entry.objects.create(data=request.data["data"])
 
         return JsonResponse({'id':d.session_id}, status=status.HTTP_201_CREATED)
