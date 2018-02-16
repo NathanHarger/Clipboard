@@ -7,9 +7,16 @@
   <button type="submit">Submit</button>
 </form>
 
-<form method="get" novalidate>
+<form method="post" novalidate>
   {% csrf_token %}
   {{ form1 }}
+  
+  <button type="submit">Submit</button>
+</form>
+
+<form method="get" novalidate>
+  {% csrf_token %}
+  {{ session_id_form }}
   
   <button type="submit">Submit</button>
 </form>

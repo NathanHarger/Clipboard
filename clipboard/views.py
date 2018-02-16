@@ -1,13 +1,13 @@
 from django.shortcuts import get_object_or_404, render,redirect
 
 from django.http import HttpResponse,JsonResponse, Http404
-from .models import Entry
+from .models import Entry,TextEntry,FileEntry,MediaType
 from django.core import serializers
 import json
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
-from clipboard.serializers import EntrySerializer
+from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 
@@ -42,16 +42,39 @@ class EntryList(APIView):
     def get(self, request, format=None):
         entries = Entry.objects.all()
         serializer = EntrySerializer(entries, many=True)
-        return Response(serializer.data)
+        return Response(serializer.text)
 
     #create new entry and return the id 
     def post(self, request, format=None):
-        d = Entry.objects.create(data=request.data["data"])
+        media_type = request.data['media_type']
+        print("1.----------->",media_type)
+        #The creation of Objects is incorrect
+        mt = MediaType(media_type_field=media_type)
 
-        return JsonResponse({'id':d.session_id}, status=status.HTTP_201_CREATED)
+        mt.save()
+
+        entry = Entry(media_id=mt)
+        entry.save()
+        s = None
+
+        #TODO Numbers being represented as strings
+        if media_type == '0':
+
+            s = TextEntry(text=request.data["text"],entry_id = entry)
+
+        else:
+
+            s = FileEntry(file=request.data["file"],entry_id = entry)
+
+        s.save()
+
+        return JsonResponse({'id':entry.session_id}, status=status.HTTP_201_CREATED)
 
 
 
+
+
+#TODO Numbers represented as strings
 class EntryDetail(APIView):
     """
     Retrieve, update or delete a snippet instance.
@@ -64,18 +87,56 @@ class EntryDetail(APIView):
 
     def get(self, request, session_id, format=None):
         snippet = self.get_object(session_id=session_id)
-        serializer = EntrySerializer(snippet)
-        return Response(serializer.data)
+        media_type = snippet.media_id
+        media = None
+        print("HERE", media_type.media_type_field)
+        if media_type.media_type_field == '0':
+            #get text
+            media = TextEntry.objects.get(entry_id = session_id)
+            serializer = TextEntrySerializer(media)
+            return JsonResponse({'data':serializer.data['text']})
 
-    def put(self, request, session_id, format=None):
-        snippet = self.get_object(session_id=session_id)
-        serializer = EntrySerializer(snippet, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        elif media_type.media_type_field =='1':
+            #get file
+            media = FileEntry.objects.get(entry_id = session_id)
+            serializer = FileEntrySerializer(media)
+            return JsonResponse({'data':serializer.data['file']})
+       
 
-    def delete(self, request, session_id, format=None):
+
+   
+
+class TextEntryDetail(APIView):
+    """
+    Retrieve, update or delete a snippet instance.
+    """
+    def get_object(self, session_id):
+        try:
+            return TextEntry.objects.get(entry_id=session_id)
+        except TextEntry.DoesNotExist:
+            raise Http404
+
+    def get(self, request, session_id, format=None):
         snippet = self.get_object(session_id=session_id)
-        snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = TextEntrySerializer(snippet)
+        return JsonResponse({'text':serializer.data['text']})
+
+    
+
+class FileEntryDetail(APIView):
+    """
+    Retrieve, update or delete a snippet instance.
+    """
+    def get_object(self, session_id):
+        try:
+            return FileEntry.objects.get(entry_id=session_id)
+        except FileEntry.DoesNotExist:
+            raise Http404
+
+    def get(self, request, session_id, format=None):
+        snippet = self.get_object(session_id=session_id)
+        serializer = FileE(snippet)
+        return JsonResponse({'file':serializer.data['file']})
+
+    
