@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, render,redirect
 
-from django.http import HttpResponse,JsonResponse, Http404
+from django.http import HttpResponse,JsonResponse, Http404,FileResponse
 from .models import Entry,TextEntry,FileEntry,MediaType
 from django.core import serializers
 import json
@@ -13,8 +13,9 @@ from rest_framework.views import APIView
 
 from rest_framework.response import Response
 from rest_framework import status
+from django.conf import settings
 
-
+import os 
 # Create your views here.
 
 
@@ -40,14 +41,16 @@ class EntryList(APIView):
     List all snippets, or create a new snippet.
     """
     def get(self, request, format=None):
+        print("1.----------->")
+
         entries = Entry.objects.all()
         serializer = EntrySerializer(entries, many=True)
         return Response(serializer.text)
 
     #create new entry and return the id 
     def post(self, request, format=None):
+
         media_type = request.data['media_type']
-        print("1.----------->",media_type)
         #The creation of Objects is incorrect
         mt = MediaType(media_type_field=media_type)
 
@@ -64,6 +67,7 @@ class EntryList(APIView):
 
         else:
 
+            print("WTF?", type(request.data['file']))
             s = FileEntry(file=request.data["file"],entry_id = entry)
 
         s.save()
@@ -101,8 +105,9 @@ class EntryDetail(APIView):
             #get file
             media = FileEntry.objects.get(entry_id = session_id)
             serializer = FileEntrySerializer(media)
-            return JsonResponse({'data':serializer.data['file']})
-       
+            fileLocation = serializer.data['file']
+
+            return FileResponse(open(settings.BASE_DIR + fileLocation,'rb'))
 
 
    

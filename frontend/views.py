@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render,redirect
+from django.shortcuts import get_object_or_404, render,redirect,reverse
 from django.http import HttpResponse,JsonResponse,HttpRequest
 from .forms import FileEntryForm,TextEntryForm,EntryForm
 from django.core import serializers
@@ -18,20 +18,23 @@ def index(request):
 		form1 = FileEntryForm(request.POST, request.FILES)
 		print("form", form.data)
 		print("form1", form1.data)
-		if  "text" in form.data:
+		if  form.is_valid():
 			# make call to setClipboard
 
 			r = requests.post("http://localhost:8000/api/clipboard/",data = { 'text' :form.data['text'], 'media_type':0})
 
 			json = r.json()
 
-			return redirect('results', data = json['id'])
-		elif "file" in form1.data:
-			print("test")
-			#form1.save()
-			r = requests.post("http://localhost:8000/api/clipboard/",data = { 'file' :form1.data['file'], 'media_type':1})
+			return render(request,'frontend/results.html', {'token':json['id']})
+		elif form1.is_valid():
+			
+			print("test", request.FILES)
+			#r = request("api/clipboard")
+			#r = redirect("/api/clipboard")
+			r = requests.post("http://localhost:8000/api/clipboard/",files=request.FILES, data={'media_type':1})
+			print("text", r.FILES)
 			json = r.json()
-			return redirect('results', data = json['id'])
+			return render(request,'frontend/results.html', {'token':json['id']})
 	elif request.method == 'GET':
 		session_id_form = EntryForm(request.GET)
 
@@ -39,9 +42,10 @@ def index(request):
 
 			#make call to getClipboard
 			r = requests.get("http://localhost:8000/api/clipboard/" + session_id_form.data['session_id'])
+			print("test",r.FILES)
 			json = r.json()
 			print("WTF", json)
-			return redirect('results', data = json['data'])
+			return render(request, 'frontend/results.html',   {'token':json['data']})
 		else:
 			form = TextEntryForm()
 			form1 = FileEntryForm()
@@ -49,6 +53,5 @@ def index(request):
 			return render(request,'frontend/index.html',{'form':form,'form1':form1, 'session_id_form': session_id_form})
 
 
-def results(request, data):
-	return render(request, 'frontend/results.html', {'token':data})
+
 

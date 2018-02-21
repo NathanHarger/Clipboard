@@ -15,4 +15,4 @@ class TextEntryForm(forms.ModelForm):
 		model = TextEntry
 		fields = ("text",)
 
-	 
+
