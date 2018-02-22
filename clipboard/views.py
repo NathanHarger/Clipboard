@@ -1,47 +1,31 @@
-from django.shortcuts import get_object_or_404, render,redirect
 
-from django.http import HttpResponse,JsonResponse, Http404,FileResponse
-from .models import Entry,TextEntry,FileEntry,MediaType
-from django.core import serializers
-import json
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
-from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer
-from rest_framework.decorators import api_view
-from rest_framework.views import APIView
-
-from rest_framework.response import Response
-from rest_framework import status
-from django.conf import settings
 import urllib.parse
 import os 
-# Create your views here.
+import mimetypes
+import re
+import json
 
+from .models import Entry,TextEntry,FileEntry,MediaType
+from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer
 
-# def index(request):
-# 	if request.method == 'POST':
-# 		form = EntryForm(request.POST)
-# 		if form.is_valid():
-# 			newEntry = Entry(data = form.data)
-# 			newEntry.save()
-# 			return redirect('results', entry_id =newEntry.id)
+from django.shortcuts import get_object_or_404, render,redirect
+from django.http import HttpResponse,JsonResponse, Http404,FileResponse
+from django.core import serializers
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
-# 	else:
-# 		form = EntryForm()
-# 		return render(request,'clipboard/index.html',{'form':form})
-
-
-# def results(request, entry_id):
-# 	entry = get_object_or_404(Entry,pk=entry_id)
-# 	return render(request, 'clipboard/results.html', {'token':entry.session_id})
+from rest_framework.decorators import api_view
+from rest_framework.views import APIView
+from rest_framework.renderers import JSONRenderer
+from rest_framework.parsers import JSONParser
+from rest_framework.response import Response
+from rest_framework import status
 
 class EntryList(APIView):
     """
     List all snippets, or create a new snippet.
     """
     def get(self, request, format=None):
-        print("1.----------->")
 
         entries = Entry.objects.all()
         serializer = EntrySerializer(entries, many=True)
@@ -67,17 +51,13 @@ class EntryList(APIView):
 
         else:
 
-            print("WTF?", type(request.data['file']))
-            s = FileEntry(file=request.data["file"],entry_id = entry)
+            s = FileEntry(file= request.data["file"],entry_id = entry)
 
         s.save()
 
         return JsonResponse({'id':entry.session_id}, status=status.HTTP_201_CREATED)
 
 
-
-import mimetypes
-import re
 #TODO Numbers represented as strings
 class EntryDetail(APIView):
     """
@@ -93,11 +73,11 @@ class EntryDetail(APIView):
         snippet = self.get_object(session_id=session_id)
         media_type = snippet.media_id
         media = None
-        print("HERE", media_type.media_type_field)
         if media_type.media_type_field == '0':
             #get text
             media = TextEntry.objects.get(entry_id = session_id)
             serializer = TextEntrySerializer(media)
+            self.delete(request,session_id)
             return JsonResponse({'data':serializer.data['text']})
 
         
@@ -108,35 +88,50 @@ class EntryDetail(APIView):
             fileLocation = serializer.data['file']
             file_name = re.search(r'[a-zA-z0-9 ]+\.[a-zA-Z0-9]+', fileLocation).group()
             file_path = settings.BASE_DIR + fileLocation
-            print("file_name", file_name)
-            print("file_path", file_path)
+            self.delete(request,session_id)
+
             return respond_as_attachment(request, file_path, file_name)
+    
+    #TODO Numbers represented as strings
+    def delete(self, request, session_id, format=None):
+        snippet = self.get_object(session_id=session_id)
+        media_type = snippet.media_id
+        if media_type.media_type_field == '1':
+            file_entry = FileEntry.objects.get(entry_id = session_id)
+            filename = file_entry.file
+           
+
+            # file can't be deleted since its required to be on disk to be
+            # served to frontend
+            #try:
+                #os.remove(settings.BASE_DIR +'/uploads/' +str(filename))
+           #except:
+            #    print("invalid file")
+
+        snippet.delete()
+
+
 
 def respond_as_attachment(request, file_path, original_filename):
-    fp = open(file_path, 'rb')
-    response = HttpResponse(fp.read())
-    fp.close()
+    
+    def generate():
+        with open(file_path, 'rb') as f:
+            yield from f
+
+        os.remove(file_path)
+
+    #fp = open(file_path, 'rb')
+    response = HttpResponse(generate())
     type, encoding = mimetypes.guess_type(original_filename)
     if type is None:
         type = 'application/octet-stream'
     response['Content-Type'] = type
-    response['Content-Length'] = str(os.stat(file_path).st_size)
     if encoding is not None:
         response['Content-Encoding'] = encoding
 
-    # To inspect details for the below code, see http://greenbytes.de/tech/tc2231/
-    if u'WebKit' in request.META['HTTP_USER_AGENT']:
-        # Safari 3.0 and Chrome 2.0 accepts UTF-8 encoded string directly.
-        filename_header = 'filename=%s' % original_filename.encode('utf-8')
-    elif u'MSIE' in request.META['HTTP_USER_AGENT']:
-        # IE does not support internationalized filename at all.
-        # It can only recognize internationalized URL, so we do the trick via routing rules.
-        filename_header = ''
-    else:
-        # For others like Firefox, we follow RFC2231 (encoding extension in HTTP headers).
-        filename_header = 'filename*=UTF-8\'\'%s' % urllib.parse.quote(original_filename.encode('utf-8'))
+    
+    filename_header = 'filename=' + original_filename
     response['Content-Disposition'] = 'attachment; ' + filename_header
-    response['X-Sendfile'] = file_path
     return response
 
 class TextEntryDetail(APIView):

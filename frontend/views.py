@@ -3,7 +3,10 @@ from django.http import HttpResponse,JsonResponse,HttpRequest
 from .forms import FileEntryForm,TextEntryForm,EntryForm
 from django.core import serializers
 import requests
-import re 
+import re
+from wsgiref.util import FileWrapper
+import mimetypes
+import os, tempfile, zipfile
 
 # Create your views here.
 
@@ -42,27 +45,23 @@ def index(request):
 
 			#make call to getClipboard
 			r = requests.get("http://localhost:8000/api/clipboard/" + session_id_form.data['session_id'], stream = True)
-			if r.encoding is None:
-				r.encoding = 'utf-8'
-			if 'content-disposition' in r. headers:
-				d = r.headers['content-disposition']
+			django_response = HttpResponse(
+    		content=r.content,
+    		status=r.status_code,
+    		content_type=r.headers['Content-Type'],
 
-				filename = re.findall(r'\w+\..+', d)[0]
+			)
 
-				print("content content-disposition", d)
-				print("filename", filename)
-				f = open(filename,"wb")
-				f.write(r.content)
-				return HttpResponse("file downloaded")
-			#for line in r.iter_lines(decode_unicode=True):
-			#	if line:
-			#		print(line)
-			#		# no data sent or 0 byte file
 
-			#if(len(r.content) !=0):
-			#	print('file', type(r))
-			#	return r
+			if 'content-disposition' in r.headers:
+				
+				django_response['Content-Disposition'] = r.headers['Content-Disposition']
+				print("Content-Disposition", django_response['Content-Disposition'])
+
+				return django_response
+			
 			else:
+				print("r", r)
 				json = r.json()
 				return render(request, 'frontend/results.html',   {'token':json['data']})
 		else:
