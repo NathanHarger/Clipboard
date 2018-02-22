@@ -22,7 +22,6 @@ class Entry(models.Model):
 
 class FileEntry(models.Model):
 	file = models.FileField()
-
 	entry_id = models.OneToOneField(Entry,on_delete=models.CASCADE,    primary_key=True    )
 
 
