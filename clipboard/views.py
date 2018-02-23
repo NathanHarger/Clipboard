@@ -21,6 +21,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework import status
 
+
+
 class EntryList(APIView):
     """
     List all snippets, or create a new snippet.
@@ -34,7 +36,11 @@ class EntryList(APIView):
     #create new entry and return the id 
     def post(self, request, format=None):
 
-        media_type = request.data['media_type']
+        if "text" in request.data:
+            media_type = 0
+        else:
+            media_type = 1
+
         #The creation of Objects is incorrect
         mt = MediaType(media_type_field=media_type)
 
@@ -44,8 +50,7 @@ class EntryList(APIView):
         entry.save()
         s = None
 
-        #TODO Numbers being represented as strings
-        if media_type == '0':
+        if media_type == 0:
 
             s = TextEntry(text=request.data["text"],entry_id = entry)
 
@@ -69,7 +74,11 @@ class EntryDetail(APIView):
         except Entry.DoesNotExist:
             raise Http404
 
-    def get(self, request, session_id, format=None):
+
+    def get(self, request, session_id=None, format=None):
+        if(session_id == None):
+            session_id = request.GET.get('session_id')
+        print(session_id)
         snippet = self.get_object(session_id=session_id)
         media_type = snippet.media_id
         media = None
@@ -81,7 +90,7 @@ class EntryDetail(APIView):
             return JsonResponse({'data':serializer.data['text']})
 
         
-        elif media_type.media_type_field =='1':
+        elif media_type.media_type_field == '1':
             #get file
             media = FileEntry.objects.get(entry_id = session_id)
             serializer = FileEntrySerializer(media)
