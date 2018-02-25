@@ -1,9 +1,82 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
-import CSRFToken from './csrftoken';
+import axios from 'axios'
 
+import logo from './logo.png';
+import './App.css';
+axios.defaults.xsrfCookieName = 'csrftoken'
+axios.defaults.xsrfHeaderName = 'X-CSRFToken'
 class App extends Component {
+constructor(props) {
+    super(props);
+
+  this.getCookie = this.getCookie.bind(this);
+  }
+getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+          
+            var cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+  submit_text(){
+ 
+
+    var csrft = this.getCookie('csrftoken')
+    var data_text = this.text.value
+    axios.post('/api/clipboard/',{
+      
+      text: data_text, csrftoken: csrft}
+     
+    )
+    .then(function (response) {
+      document.getElementById("container").innerHTML = response.data.id
+      console.log(response);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  }
+
+   
+
+  submit_file(){
+    var csrft = this.getCookie('csrftoken')
+    var data_file = this.file
+    console.log(data_file.files[0])
+    axios.post('/api/clipboard/', {file: data_file.files[0]})
+    .then(function (response) {
+      console.log(response);
+      document.getElementById("container").innerHTML = response.data.id
+
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+    alert(this.file.value)
+    
+  }
+  submit_id(){
+    var data_id = this.id.value
+    axios.get('/api/clipboard/getData/', {params:{session_id: data_id}})
+    .then(function (response) {
+      console.log(response);
+      console.log(response.data)
+      //document.getElementById("container").innerHTML = response.data.data
+
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+    
+  }
   render() {
     return (
       <div className="App">
@@ -11,33 +84,33 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Anonymous Clipboard</h1>
         </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        
         <div className="App-center">
           <div className="App-forms">
-            <form method="post" action='/api/clipboard/' novalidate>
-              <CSRFToken />
+            <form  noValidate>
 
               <label for="text">Enter Text:</label>
-              <input name ="text" type='text'></input>
-              <button type="submit">Submit</button>
+              <input name ="text" type='text' ref={(input) => this.text = input}></input>
+            
+              <input type="button" value= "Submit" onClick={this.submit_text.bind(this)} ></input>
             </form>
 
-            <form method="post" action="/api/clipboard/" enctype="multipart/form-data" novalidate> 
-            <CSRFToken />
+           
+            <form encType="multipart/form-data" noValidate> 
 
             <label for="file"> Enter File: </label> 
-            <input type="file" name="file"/> 
-              <button type="submit">Submit</button>
+              <input name ="file" type='file' ref={(input) => this.file = input}></input>
+              <input type="button" value="Submit" onClick={this.submit_file.bind(this)}></input>
             </form>
 
-            <form action="/api/clipboard/getData" method="get" novalidate>  
+            <form noValidate>  
               <label for="session_id">Enter Id:</label>
-              <input type='text' name="session_id"></input>
-              <button type="submit">Submit</button>
+              <input type='text' name="session_id" ref={(input) => this.id = input}></input>
+              <input type="button" value="Submit" onClick={this.submit_id.bind(this)}></input>
             </form>
           </div>
+        </div>
+        <div id="container">
         </div>
       </div>
     );

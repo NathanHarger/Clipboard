@@ -52,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+CSRF_COOKIE_NAME = "XSRF-TOKEN"
 
 ROOT_URLCONF = 'AnonymousClipboard.urls'
 WEBPACK_LOADER = {
