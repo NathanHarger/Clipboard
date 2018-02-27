@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios'
-
+import FileDownload from 'react-file-download'
 import logo from './logo.png';
 import './App.css';
 axios.defaults.xsrfCookieName = 'csrftoken'
@@ -8,8 +8,8 @@ axios.defaults.xsrfHeaderName = 'X-CSRFToken'
 class App extends Component {
 constructor(props) {
     super(props);
-
   this.getCookie = this.getCookie.bind(this);
+
   }
 getCookie(name) {
     var cookieValue = null;
@@ -26,23 +26,24 @@ getCookie(name) {
     }
     return cookieValue;
 }
-  submit_text(){
- 
 
-    var csrft = this.getCookie('csrftoken')
-    var data_text = this.text.value
-    axios.post('/api/clipboard/',{
-      
-      text: data_text, csrftoken: csrft}
-     
-    )
-    .then(function (response) {
-      document.getElementById("container").innerHTML = response.data.id
-      console.log(response);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+
+
+  submit_text(){
+      var csrft = this.getCookie('csrftoken')
+      var data_text = this.text.value
+      axios.post('/api/clipboard/',{
+        
+        text: data_text, csrftoken: csrft}
+       
+      )
+      .then(function (response) {
+        document.getElementById("container").innerHTML = response.data.id
+        console.log(response);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   }
 
    
@@ -50,8 +51,13 @@ getCookie(name) {
   submit_file(){
     var csrft = this.getCookie('csrftoken')
     var data_file = this.file
+    var formData = new FormData();
+    formData.append("file", data_file.files[0]);
+
     console.log(data_file.files[0])
-    axios.post('/api/clipboard/', {file: data_file.files[0]})
+    axios.post('/api/clipboard/', formData,{  headers: {
+      'Content-Type': 'multipart/form-data'
+    }})
     .then(function (response) {
       console.log(response);
       document.getElementById("container").innerHTML = response.data.id
@@ -63,13 +69,30 @@ getCookie(name) {
     alert(this.file.value)
     
   }
+
+
   submit_id(){
     var data_id = this.id.value
-    axios.get('/api/clipboard/getData/', {params:{session_id: data_id}})
+    var metadata;
+    axios.get('/api/clipboard/getMetadata/', {params:{session_id: data_id}}) 
     .then(function (response) {
-      console.log(response);
-      console.log(response.data)
-      //document.getElementById("container").innerHTML = response.data.data
+      metadata = response.data
+      //console.log(response);
+      //var media_type = response.data['media_type']
+      //console.log(media_type)
+      axios.get('/api/clipboard/getData/', {params:{session_id: data_id}})
+        .then(function(response){
+          console.log(response)
+          if(metadata['media_type'] === "Text"){
+            console.log("text")
+            document.getElementById("container").innerHTML = response.data.data
+
+          } else if(metadata['media_type'] === 'File'){
+            console.log("file")
+
+            FileDownload(response.data, metadata.FileMetaData['file_name']);
+          }
+        })
 
     })
     .catch(function (error) {
@@ -77,6 +100,8 @@ getCookie(name) {
     });
     
   }
+
+
   render() {
     return (
       <div className="App">
