@@ -1,1 +1,1 @@
-web: gunicorn AnonymousClipboard.wsgi
+web: gunicorn AnonymousClipboard.wsgi --log-file -
