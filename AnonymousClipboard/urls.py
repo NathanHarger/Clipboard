@@ -14,14 +14,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+
 from django.urls import include, path
 from django.conf.urls.static import static
+from django.conf.urls import url
+
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-from clipboard import views
+from clipboard import views as v
 from frontend import views
 urlpatterns = [
 	path('api/', include('clipboard.urls')),
         path('', include('frontend.urls')),
+        url(r'(?P<session_id>[a-zA-Z0-9]+)',v.EntryDetail.as_view()),
     path('admin/', admin.site.urls),
 ]

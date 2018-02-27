@@ -5,8 +5,8 @@ import mimetypes
 import re
 import json
 
-from .models import Entry,TextEntry,FileEntry,MediaType
-from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer
+from .models import Entry,TextEntry,FileEntry,MediaType, FileMetaEntry
+from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer,FileMetaEntrySerializer
 
 from django.shortcuts import get_object_or_404, render,redirect
 from django.http import HttpResponse,JsonResponse, Http404,FileResponse
@@ -21,6 +21,32 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework import status
 
+
+class EntryMetaDataDetail(APIView):
+    def get_object(self, session_id):
+        try:
+            return Entry.objects.get(session_id=session_id)
+        except Entry.DoesNotExist:
+            raise Http404
+    def get(self, request,session_id=None, format=None):
+        print("running get meta data")
+        if(session_id == None):
+            session_id = request.GET.get('session_id')
+        entry = self.get_object(session_id)
+
+        
+        entry_serializer = EntrySerializer(entry)
+        print("WERFSDAF", entry.media_id)
+        media = entry.media_id
+        media_type = int(media.media_type_field)
+        if media_type == 1:
+            fmd = FileMetaEntry.objects.get(file_entry_id =entry)
+            fmds = FileMetaEntrySerializer(fmd)
+            return JsonResponse({"entry" :entry_serializer.data ,"media_type":media.media_types[media_type][1], "FileMetaData":fmds.data}) 
+        else:
+            return JsonResponse({"entry" :entry_serializer.data ,"media_type":media.media_types[media_type][1]}) 
+
+
 class EntryList(APIView):
     """
     List all snippets, or create a new snippet.
@@ -33,8 +59,12 @@ class EntryList(APIView):
 
     #create new entry and return the id 
     def post(self, request, format=None):
+        print("WTF" ,request.data)
+        if "text" in request.data:
+            media_type = 0
+        else:
+            media_type = 1
 
-        media_type = request.data['media_type']
         #The creation of Objects is incorrect
         mt = MediaType(media_type_field=media_type)
 
@@ -43,17 +73,22 @@ class EntryList(APIView):
         entry = Entry(media_id=mt)
         entry.save()
         s = None
-
-        #TODO Numbers being represented as strings
-        if media_type == '0':
+        print("media_type", media_type)
+        if media_type == 0:
 
             s = TextEntry(text=request.data["text"],entry_id = entry)
+            s.save()
 
         else:
 
             s = FileEntry(file= request.data["file"],entry_id = entry)
+            s.save()
+            print("_______?", s.file)
+            type, encoding = mimetypes.guess_type(settings.MEDIA_ROOT +s.file.name)
+            size = os.path.getsize(settings.MEDIA_ROOT +s.file.name)
 
-        s.save()
+            fme = FileMetaEntry(file_entry_id = entry, file_name = s.file,file_type=type, file_length= size)
+            fme.save()
 
         return JsonResponse({'id':entry.session_id}, status=status.HTTP_201_CREATED)
 
@@ -69,9 +104,13 @@ class EntryDetail(APIView):
         except Entry.DoesNotExist:
             raise Http404
 
-    def get(self, request, session_id, format=None):
-        snippet = self.get_object(session_id=session_id)
-        media_type = snippet.media_id
+
+    def get(self, request, session_id=None, format=None):
+        if(session_id == None):
+            session_id = request.GET.get('session_id')
+        print(session_id)
+        entry = self.get_object(session_id=session_id)
+        media_type = entry.media_id
         media = None
         if media_type.media_type_field == '0':
             #get text
@@ -81,16 +120,20 @@ class EntryDetail(APIView):
             return JsonResponse({'data':serializer.data['text']})
 
         
-        elif media_type.media_type_field =='1':
+        elif media_type.media_type_field == '1':
             #get file
             media = FileEntry.objects.get(entry_id = session_id)
+            file_metadata = FileMetaEntry.objects.get(file_entry_id = entry)
+
+            print("WTF", media.file)
             serializer = FileEntrySerializer(media)
             fileLocation = serializer.data['file']
-            file_name = re.search(r'[a-zA-z0-9 ]+\.[a-zA-Z0-9]+', fileLocation).group()
+
+            file_name = file_metadata.file_name
             file_path = settings.BASE_DIR + fileLocation
             self.delete(request,session_id)
 
-            return respond_as_attachment(request, file_path, file_name)
+            return respond_as_attachment(request, file_path, file_name, file_metadata.file_type)
     
     #TODO Numbers represented as strings
     def delete(self, request, session_id, format=None):
@@ -112,7 +155,7 @@ class EntryDetail(APIView):
 
 
 
-def respond_as_attachment(request, file_path, original_filename):
+def respond_as_attachment(request, file_path, original_filename, file_format):
     
     def generate():
         with open(file_path, 'rb') as f:
@@ -122,12 +165,11 @@ def respond_as_attachment(request, file_path, original_filename):
 
     #fp = open(file_path, 'rb')
     response = HttpResponse(generate())
-    type, encoding = mimetypes.guess_type(original_filename)
-    if type is None:
-        type = 'application/octet-stream'
-    response['Content-Type'] = type
-    if encoding is not None:
-        response['Content-Encoding'] = encoding
+    if file_format is None:
+        file_format = 'application/octet-stream'
+    response['Content-Type'] = file_format
+    if file_format is not None:
+        response['Content-Encoding'] = file_format
 
     
     filename_header = 'filename=' + original_filename

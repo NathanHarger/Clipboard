@@ -29,4 +29,8 @@ class TextEntry(models.Model):
 	text = models.CharField(max_length = 1000)
 	entry_id = models.OneToOneField(Entry,on_delete=models.CASCADE,    primary_key=True    )
 
-
+class FileMetaEntry(models.Model):
+	file_entry_id = models.OneToOneField(Entry,on_delete=models.CASCADE,    primary_key=True  )
+	file_name = models.CharField(max_length=50)
+	file_length = models.IntegerField()
+	file_type = models.CharField(max_length=50)
