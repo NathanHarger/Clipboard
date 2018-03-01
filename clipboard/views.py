@@ -4,7 +4,7 @@ import os
 import mimetypes
 import re
 import json
-import boto
+import boto3
 
 from .models import Entry,TextEntry,FileEntry,MediaType, FileMetaEntry
 from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer,FileMetaEntrySerializer
@@ -163,7 +163,7 @@ def respond_as_attachment(request, file_path, original_filename, file_format):
     
     try:
  
-        c = boto.connect_s3()
+        c = boto3.connect_s3()
         bucket = c.lookup(settings.AWS_STORAGE_BUCKET_NAME)
         key = bucket.lookup(filename)
 
