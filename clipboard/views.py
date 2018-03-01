@@ -11,6 +11,7 @@ from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntr
 from django.shortcuts import get_object_or_404, render,redirect
 from django.http import HttpResponse,JsonResponse, Http404,FileResponse
 from django.core import serializers
+from django.core.files.storage import default_storage
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 
@@ -20,7 +21,6 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework import status
-
 
 class EntryMetaDataDetail(APIView):
     def get_object(self, session_id):
@@ -156,12 +156,10 @@ class EntryDetail(APIView):
 
 
 def respond_as_attachment(request, file_path, original_filename, file_format):
-    
     def generate():
-        with open(file_path, 'rb') as f:
+        with default_storage.open(original_filename, 'rb') as f:
             yield from f
-
-        os.remove(file_path)
+    default_storage.delete(original_filename)
 
     #fp = open(file_path, 'rb')
     response = HttpResponse(generate())
