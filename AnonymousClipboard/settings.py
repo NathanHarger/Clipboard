@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'webpack_loader',
-    'django-storages',
+    'storages',
 
 ]
 
