@@ -84,8 +84,8 @@ class EntryList(APIView):
             s = FileEntry(file= request.data["file"],entry_id = entry)
             s.save()
             print("_______?", s.file)
-            type, encoding = mimetypes.guess_type(settings.MEDIA_ROOT +s.file.name)
-            size = os.path.getsize(settings.MEDIA_ROOT +s.file.name)
+            type, encoding = mimetypes.guess_type(s.file.name)
+            size = len(request.data[s.file.name])
 
             fme = FileMetaEntry(file_entry_id = entry, file_name = s.file,file_type=type, file_length= size)
             fme.save()
