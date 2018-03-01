@@ -164,7 +164,7 @@ def respond_as_attachment(request, file_path, original_filename, file_format):
  
     s3 = boto3.resource('s3')
     def generate():
-        with s3.Bucket(settings.AWS_STORAGE_BUCKET_NAME).Object(Key=media+'/'+original_filename).get()['Body'].read() as f:
+        with s3.Bucket(settings.AWS_STORAGE_BUCKET_NAME).Object(Key='/media/'+original_filename).get()['Body'].read() as f:
             yield from f
         default_storage.delete(file_path)
 
