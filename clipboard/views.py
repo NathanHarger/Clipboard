@@ -162,7 +162,7 @@ class EntryDetail(APIView):
 def respond_as_attachment(request, file_path, original_filename, file_format):
     
  
-    c = boto3.resources('s3')
+    c = boto3.resource('s3')
     bucket = c.lookup(settings.AWS_STORAGE_BUCKET_NAME)
     key = bucket.lookup(filename)
 
