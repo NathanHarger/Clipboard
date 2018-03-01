@@ -161,17 +161,12 @@ class EntryDetail(APIView):
 
 def respond_as_attachment(request, file_path, original_filename, file_format):
     
-    try:
  
-        c = boto3.connect_s3()
-        bucket = c.lookup(settings.AWS_STORAGE_BUCKET_NAME)
-        key = bucket.lookup(filename)
+    c = boto3.connect_s3()
+    bucket = c.lookup(settings.AWS_STORAGE_BUCKET_NAME)
+    key = bucket.lookup(filename)
 
-    except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == "404":
-            print("The object does not exist.")
-        else:
-            raise
+       
 
     def generate():
         with key as f:
