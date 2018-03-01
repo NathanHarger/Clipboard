@@ -162,9 +162,6 @@ AWS_S3_OBJECT_PARAMETERS = {
 }
 
 AWS_LOCATION = 'static'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'mysite/static'),
-]
 
 DEFAULT_FILE_STORAGE = 'mysite.storage_backends.MediaStorage'  # <-- here is where we reference it
 
