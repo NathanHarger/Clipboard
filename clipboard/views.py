@@ -4,7 +4,7 @@ import os
 import mimetypes
 import re
 import json
-import boto3
+from boto3 import boto3
 
 from .models import Entry,TextEntry,FileEntry,MediaType, FileMetaEntry
 from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer,FileMetaEntrySerializer
