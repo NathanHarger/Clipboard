@@ -163,5 +163,5 @@ AWS_S3_OBJECT_PARAMETERS = {
 
 AWS_LOCATION = 'static'
 
-DEFAULT_FILE_STORAGE = 'mysite.storage_backends.MediaStorage'  # <-- here is where we reference it
+DEFAULT_FILE_STORAGE = 'AnonymousClipboard.storage_backends.MediaStorage' 
 
