@@ -27,7 +27,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["testserver",'localhost','127.0.0.1','localhost:3000','vast-chamber-77416.herokuapp.com']
+ALLOWED_HOSTS = ["testserver",'localhost','127.0.0.1','localhost:3000','localhost:5000','vast-chamber-77416.herokuapp.com']
 
 
 # Application definition
