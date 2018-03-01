@@ -4,6 +4,7 @@ import os
 import mimetypes
 import re
 import json
+import boto
 
 from .models import Entry,TextEntry,FileEntry,MediaType, FileMetaEntry
 from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer,FileMetaEntrySerializer
@@ -122,6 +123,9 @@ class EntryDetail(APIView):
         
         elif media_type.media_type_field == '1':
             #get file
+
+
+         
             media = FileEntry.objects.get(entry_id = session_id)
             file_metadata = FileMetaEntry.objects.get(file_entry_id = entry)
 
@@ -130,7 +134,7 @@ class EntryDetail(APIView):
             fileLocation = serializer.data['file']
 
             file_name = file_metadata.file_name
-            file_path = settings.BASE_DIR + fileLocation
+            file_path = settings.AWS_S3_CUSTOM_DOMAIN + fileLocation
             self.delete(request,session_id)
 
             return respond_as_attachment(request, file_path, file_name, file_metadata.file_type)
@@ -156,10 +160,23 @@ class EntryDetail(APIView):
 
 
 def respond_as_attachment(request, file_path, original_filename, file_format):
+    
+    try:
+ 
+        c = boto.connect_s3()
+        bucket = c.lookup(settings.AWS_STORAGE_BUCKET_NAME)
+        key = bucket.lookup(filename)
+
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            print("The object does not exist.")
+        else:
+            raise
+
     def generate():
-        with default_storage.open(original_filename, 'rb') as f:
+        with key as f:
             yield from f
-    default_storage.delete(original_filename)
+        default_storage.delete(file_path)
 
     #fp = open(file_path, 'rb')
     response = HttpResponse(generate())
