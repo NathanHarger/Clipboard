@@ -166,14 +166,9 @@ def respond_as_attachment(request, file_path, original_filename, file_format):
 
     def generate():
 
-<<<<<<< HEAD
         with obj.get()['Body'] as f:
-=======
-        with s3.Object(bucket_name=settings.AWS_STORAGE_BUCKET_NAME,key='media/'+original_filename).get()['Body'] as f:
->>>>>>> c09d0617d8c3979fd58c3caffb46e0e3638c8265
 
             yield from f
-        default_storage.delete(file_path)
 
     #fp = open(file_path, 'rb')
     response = HttpResponse(generate())
