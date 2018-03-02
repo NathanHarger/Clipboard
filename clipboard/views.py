@@ -165,7 +165,7 @@ def respond_as_attachment(request, file_path, original_filename, file_format):
     obj = s3.Object(settings.AWS_STORAGE_BUCKET_NAME,'media/'+original_filename)
     data = obj.get()['Body']
     def generator():
-        with data.read(amt=1024) as r
+        with data.read(amt=1024) as r:
             yield from r
      
     #fp = open(file_path, 'rb')
