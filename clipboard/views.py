@@ -163,15 +163,9 @@ def respond_as_attachment(request, file_path, original_filename, file_format):
     
     s3 = boto3.resource('s3')
     obj = s3.Object(settings.AWS_STORAGE_BUCKET_NAME,'media/'+original_filename)
-<<<<<<< HEAD
     data = obj.get()['Body'].read(amt=1024)
     
-=======
-    data = obj.get()['Body']
-    def generator():
-        with data.read(amt=1024) as r:
-            yield from r
->>>>>>> a591433d312f9f4cbba776254817d367cbb71396
+
      
     #fp = open(file_path, 'rb')
     response = HttpResponse(data)
