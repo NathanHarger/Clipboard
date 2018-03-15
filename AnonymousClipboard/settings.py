@@ -64,7 +64,6 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = (
     'localhost:3000',
-    'immense-woodland-64793.herokuapp.com'
 
 )
 
@@ -152,16 +151,19 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)
 
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
+if DEBUG:
+    MEDIA_URL = '/uploads/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads/')
+else:
+    AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
+    AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+    AWS_STORAGE_BUCKET_NAME = 'clipboard-media'
+    AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
 
-AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
-AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
-AWS_STORAGE_BUCKET_NAME = 'clipboard-media'
-AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
+    AWS_LOCATION = 'static'
 
-AWS_LOCATION = 'static'
-
-DEFAULT_FILE_STORAGE = 'AnonymousClipboard.storage_backends.MediaStorage' 
+    DEFAULT_FILE_STORAGE = 'AnonymousClipboard.storage_backends.MediaStorage' 
 

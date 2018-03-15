@@ -134,7 +134,11 @@ class EntryDetail(APIView):
             fileLocation = serializer.data['file']
 
             file_name = file_metadata.file_name
-            file_path = settings.AWS_S3_CUSTOM_DOMAIN + fileLocation
+            if not settings.DEBUG:
+                file_path = settings.AWS_S3_CUSTOM_DOMAIN + fileLocation
+            else:
+                file_path = settings.BASE_DIR + fileLocation
+
             self.delete(request,session_id)
 
             return respond_as_attachment(request, file_path, file_name, file_metadata.file_type)
@@ -161,13 +165,20 @@ class EntryDetail(APIView):
 
 def respond_as_attachment(request, file_path, original_filename, file_format):
     
-    s3 = boto3.resource('s3')
-    obj = s3.Object(settings.AWS_STORAGE_BUCKET_NAME,'media/'+original_filename)
-    data = obj.get()['Body'].read(amt=1024)
-    
+    if not settings.DEBUG:
+        s3 = boto3.resource('s3')
+        obj = s3.Object(settings.AWS_STORAGE_BUCKET_NAME,'media/'+original_filename)
+        data = obj.get()['Body'].read(amt=1024)
+        response = HttpResponse(data)
+    else:
+        def generate():
+            with open(file_path, 'rb') as f:
+                yield from f
+
+            os.remove(file_path)
+        response = HttpResponse(generate())
 
     #fp = open(file_path, 'rb')
-    response = HttpResponse(data)
     if file_format is None:
         file_format = 'application/octet-stream'
     response['Content-Type'] = file_format
