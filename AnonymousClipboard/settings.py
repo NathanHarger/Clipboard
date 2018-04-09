@@ -64,7 +64,7 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = (
     'localhost:3000',
-
+    'immense-woodland-64793.herokuapp.com',
 )
 
 CSRF_COOKIE_NAME = "XSRF-TOKEN"
