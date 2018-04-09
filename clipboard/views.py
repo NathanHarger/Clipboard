@@ -60,7 +60,6 @@ class EntryList(APIView):
 
     #create new entry and return the id 
     def post(self, request, format=None):
-        print("WTF" ,request.data)
         if "text" in request.data:
             media_type = 0
         else:
@@ -70,6 +69,7 @@ class EntryList(APIView):
         mt = MediaType(media_type_field=media_type)
 
         mt.save()
+     
 
         entry = Entry(media_id=mt)
         entry.save()
@@ -129,7 +129,6 @@ class EntryDetail(APIView):
             media = FileEntry.objects.get(entry_id = session_id)
             file_metadata = FileMetaEntry.objects.get(file_entry_id = entry)
 
-            print("WTF", media.file)
             serializer = FileEntrySerializer(media)
             fileLocation = serializer.data['file']
 
