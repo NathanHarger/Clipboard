@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["testserver",'localhost','127.0.0.1','localhost:3000','localhost:5000','vast-chamber-77416.herokuapp.com']
 
@@ -35,6 +35,8 @@ ALLOWED_HOSTS = ["testserver",'localhost','127.0.0.1','localhost:3000','localhos
 INSTALLED_APPS = [
     'clipboard.apps.ClipboardConfig',
     'frontend.apps.FrontendConfig',
+    'oauth2_provider',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,6 +49,12 @@ INSTALLED_APPS = [
     'storages',
 
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES':(
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    ),
+}
 
 MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',

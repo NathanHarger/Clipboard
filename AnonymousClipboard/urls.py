@@ -24,8 +24,9 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from clipboard import views as v
 from frontend import views
 urlpatterns = [
-	path('api/', include('clipboard.urls')),
-        #path('', include('frontend.urls')),
-        url(r'(?P<session_id>[a-zA-Z0-9]+)',v.EntryDetail.as_view()),
-    path('admin/', admin.site.urls),
+	url(r'^api/', include('clipboard.urls')),
+    url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    #path('', include('frontend.urls')),
+    url(r'^admin/', admin.site.urls),
+
 ]
