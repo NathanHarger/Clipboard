@@ -7,28 +7,44 @@ import json
 import boto3
 
 from .models import Entry,TextEntry,FileEntry,MediaType, FileMetaEntry
-from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer,FileMetaEntrySerializer
+from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer,FileMetaEntrySerializer, SignUpSerializer
 
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render,redirect
 from django.http import HttpResponse,JsonResponse, Http404,FileResponse
 from django.core import serializers
 from django.core.files.storage import default_storage
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
+from rest_framework.permissions import AllowAny
+from oauth2_provider.models import Application
+from oauth2_provider.views.generic import ProtectedResourceView
+
+from .permissions import IsAuthenticatedOrCreate
+#from rest_framework.authentication import OAuth2Authentication
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication,TokenHasScope
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 class EntryMetaDataDetail(APIView):
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [TokenHasScope]
+    required_scopes = ['read', 'write']
+    
+
     def get_object(self, session_id):
         try:
             return Entry.objects.get(session_id=session_id)
         except Entry.DoesNotExist:
             raise Http404
+
     def get(self, request,session_id=None, format=None):
         print("running get meta data")
         if(session_id == None):
@@ -49,21 +65,25 @@ class EntryMetaDataDetail(APIView):
 
 
 class EntryList(APIView):
-    """
-    List all snippets, or create a new snippet.
-    """
-    def get(self, request, format=None):
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [TokenHasScope]
+    required_scopes = ['read', 'write']
+    
 
-        entries = Entry.objects.all()
-        serializer = EntrySerializer(entries, many=True)
-        return Response(serializer.text)
-
+    def get(self, request):
+       return HttpResponse("no get")
+    
     #create new entry and return the id 
+
     def post(self, request, format=None):
+
+        print(request.data)
         if "text" in request.data:
             media_type = 0
-        else:
+        elif "file" in request.data:
             media_type = 1
+        else:
+            return JsonResponse({'error_message':"missing file or text field"}, status=status.HTTP_400_BAD_REQUEST)
 
         #The creation of Objects is incorrect
         mt = MediaType(media_type_field=media_type)
@@ -96,21 +116,30 @@ class EntryList(APIView):
 
 #TODO Numbers represented as strings
 class EntryDetail(APIView):
+
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [TokenHasScope]
+    required_scopes = ['read', 'write']
+    
     """
     Retrieve, update or delete a snippet instance.
     """
+   
+
     def get_object(self, session_id):
         try:
             return Entry.objects.get(session_id=session_id)
         except Entry.DoesNotExist:
-            raise Http404
-
-
+            return None
     def get(self, request, session_id=None, format=None):
+        print("called")
         if(session_id == None):
             session_id = request.GET.get('session_id')
         print(session_id)
         entry = self.get_object(session_id=session_id)
+        if entry == None:
+            return JsonResponse({"error_message":"Invalid session-id"}, status=status.HTTP_409_CONFLICT)
+
         media_type = entry.media_id
         media = None
         if media_type.media_type_field == '0':
@@ -190,6 +219,11 @@ def respond_as_attachment(request, file_path, original_filename, file_format):
     return response
 
 class TextEntryDetail(APIView):
+
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [TokenHasScope]
+    required_scopes = ['read', 'write']
+    
     """
     Retrieve, update or delete a snippet instance.
     """
@@ -198,7 +232,6 @@ class TextEntryDetail(APIView):
             return TextEntry.objects.get(entry_id=session_id)
         except TextEntry.DoesNotExist:
             raise Http404
-
     def get(self, request, session_id, format=None):
         snippet = self.get_object(session_id=session_id)
         serializer = TextEntrySerializer(snippet)
@@ -207,6 +240,12 @@ class TextEntryDetail(APIView):
     
 
 class FileEntryDetail(APIView):
+
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [TokenHasScope]
+    required_scopes = ['read', 'write']
+    
+
     """
     Retrieve, update or delete a snippet instance.
     """
@@ -221,4 +260,28 @@ class FileEntryDetail(APIView):
         serializer = FileE(snippet)
         return JsonResponse({'file':serializer.data['file']})
 
+class SignUp(APIView):
+    permission_classes = [AllowAny]
     
+    #def get(self,request):
+     #   return JsonResponse({'error_message': "Must be POST"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def post(self, request):
+
+        
+        if 'username' not in request.data or 'password' not in request.data:
+            return JsonResponse({'error_message':'Require username and password as form data'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user = request.data['username']
+        print(user)
+        try:
+            userobj = User.objects.all().get(username=user)
+        except:
+            userobj = None
+        print(userobj)
+        if(userobj == None):
+            User.objects.create_user(username=user,  password=request.data['password'])
+            return JsonResponse({'username': user}, status=status.HTTP_201_CREATED)
+        return JsonResponse({'error_message': user + " is already taken"}, status=status.HTTP_401_UNAUTHORIZED)
+    #permission_classes = (IsAuthenticatedOrCreate,)
+
