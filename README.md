@@ -46,8 +46,10 @@ The user name must be unique
 You must replace <code>API_KEY_HERE</code> with your personal API key.
 </aside>
 
-# Clipboard
+***
 
+# Clipboard
+The Clipboard API is used to create clipboards and retrieve contents. It enables a way to quickily share text and files between multiple devices.
 ## Set Data
 This endpoint creates a new clipboard and sets the contents.
 
