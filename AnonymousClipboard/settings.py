@@ -157,7 +157,9 @@ DATABASES['default'].update(db_from_env)
 if DEBUG:
     MEDIA_URL = '/uploads/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads/')
+    URL_HOST = 'http://localhost:8000/'
 else:
+    URL_HOST = 'https://vast-chamber-77416.herokuapp.com/'
     AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
     AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
     AWS_STORAGE_BUCKET_NAME = 'clipboard-media'

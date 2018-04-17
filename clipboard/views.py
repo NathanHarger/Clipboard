@@ -5,7 +5,7 @@ import mimetypes
 import re
 import json
 import boto3
-
+import requests
 from .models import Entry,TextEntry,FileEntry,MediaType, FileMetaEntry
 from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntrySerializer,FileMetaEntrySerializer, SignUpSerializer
 
@@ -278,10 +278,18 @@ class SignUp(APIView):
             userobj = User.objects.all().get(username=user)
         except:
             userobj = None
-        print(userobj)
         if(userobj == None):
             User.objects.create_user(username=user,  password=request.data['password'])
-            return JsonResponse({'username': user}, status=status.HTTP_201_CREATED)
+            r = requests.post(settings.URL_HOST + "o/token/", data ={"username":user, "password":request.data['password'], 
+                                                                        "grant_type":"password", 
+                                                                        "client_id":"Wdj99Y5tK42ibtrCqhnxyd4Cy4E9i2HQiV0kmUVP"})
+            django_response = HttpResponse(
+            content=r.content,
+            status=r.status_code,
+            content_type=r.headers['Content-Type'],
+
+            )
+            return django_response
         return JsonResponse({'error_message': user + " is already taken"}, status=status.HTTP_401_UNAUTHORIZED)
     #permission_classes = (IsAuthenticatedOrCreate,)
 
