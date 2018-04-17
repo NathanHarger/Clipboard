@@ -28,7 +28,6 @@ from rest_framework.permissions import AllowAny
 from oauth2_provider.models import Application
 from oauth2_provider.views.generic import ProtectedResourceView
 
-from .permissions import IsAuthenticatedOrCreate
 #from rest_framework.authentication import OAuth2Authentication
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication,TokenHasScope
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -96,17 +95,31 @@ class EntryList(APIView):
         s = None
         print("media_type", media_type)
         if media_type == 0:
+            text = request.data["text"]
+            size = len(text)
 
+            if(size > 1000):
+                return JsonResponse({'error_message':'1000 character limit'}, status=status.HTTP_409_CONFLICT)
+    
             s = TextEntry(text=request.data["text"],entry_id = entry)
             s.save()
 
         else:
+            file = request.data['file']
+            print(file)
+            size = len(file)
+            print(size)
 
+            if(size >= 1000024):
+                return JsonResponse({'error_message':'File too large, 1MB limit'}, status=status.HTTP_409_CONFLICT)
+    
+            type, encoding = mimetypes.guess_type(request.data['file'].name)
+
+            len(file)
             s = FileEntry(file= request.data["file"],entry_id = entry)
             s.save()
             print("_______?", s.file)
-            type, encoding = mimetypes.guess_type(s.file.name)
-            size = len(request.data)
+            
 
             fme = FileMetaEntry(file_entry_id = entry, file_name = s.file,file_type=type, file_length= size)
             fme.save()
@@ -291,5 +304,4 @@ class SignUp(APIView):
             )
             return django_response
         return JsonResponse({'error_message': user + " is already taken"}, status=status.HTTP_401_UNAUTHORIZED)
-    #permission_classes = (IsAuthenticatedOrCreate,)
 

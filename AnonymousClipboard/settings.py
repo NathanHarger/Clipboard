@@ -25,7 +25,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
 ALLOWED_HOSTS = ["testserver",'localhost','127.0.0.1','localhost:3000','localhost:5000','vast-chamber-77416.herokuapp.com']
 
 
@@ -159,6 +158,8 @@ if DEBUG:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads/')
     URL_HOST = 'http://localhost:8000/'
 else:
+    SECURE_SSL_REDIRECT = True
+
     URL_HOST = 'https://vast-chamber-77416.herokuapp.com/'
     AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
     AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
