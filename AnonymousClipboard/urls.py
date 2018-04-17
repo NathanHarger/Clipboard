@@ -18,14 +18,30 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls.static import static
 from django.conf.urls import url
+from django.contrib.auth.models import User, Group
 
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-
+from rest_framework import permissions, routers, serializers, viewsets
+from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from clipboard import views as v
 from frontend import views
+
+
+
+
+# Routers provide an easy way of automatically determining the URL conf
+#router = routers.DefaultRouter()
+#router.register(r'users', UserViewSet)
+#router.register(r'groups', GroupViewSet)
 urlpatterns = [
-	path('api/', include('clipboard.urls')),
-        #path('', include('frontend.urls')),
-        url(r'(?P<session_id>[a-zA-Z0-9]+)',v.EntryDetail.as_view()),
-    path('admin/', admin.site.urls),
+    url(r'^sign_up/$', v.SignUp.as_view(), name="sign_up"),
+
+    #url(r'^', include(router.urls)),
+
+	url(r'^api/', include('clipboard.urls')),
+    url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    #path('', include('frontend.urls')),
+    url(r'^admin/', admin.site.urls),
+
+
 ]

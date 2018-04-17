@@ -14,7 +14,6 @@ import os
 import dj_database_url
 
 
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -25,8 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
+DEBUG = True
 ALLOWED_HOSTS = ["testserver",'localhost','127.0.0.1','localhost:3000','localhost:5000','vast-chamber-77416.herokuapp.com']
 
 
@@ -35,6 +33,8 @@ ALLOWED_HOSTS = ["testserver",'localhost','127.0.0.1','localhost:3000','localhos
 INSTALLED_APPS = [
     'clipboard.apps.ClipboardConfig',
     'frontend.apps.FrontendConfig',
+    'oauth2_provider',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,12 +48,15 @@ INSTALLED_APPS = [
 
 ]
 
+
+
 MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
 
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -62,12 +65,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ORIGIN_WHITELIST = (
-    'localhost:3000',
-    'immense-woodland-64793.herokuapp.com',
-)
 
-CSRF_COOKIE_NAME = "XSRF-TOKEN"
+
+
+
+#CSRF_COOKIE_NAME = "XSRF-TOKEN"
 
 ROOT_URLCONF = 'AnonymousClipboard.urls'
 WEBPACK_LOADER = {
@@ -154,7 +156,11 @@ DATABASES['default'].update(db_from_env)
 if DEBUG:
     MEDIA_URL = '/uploads/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads/')
+    URL_HOST = 'http://localhost:8000/'
 else:
+    SECURE_SSL_REDIRECT = True
+
+    URL_HOST = 'https://vast-chamber-77416.herokuapp.com/'
     AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
     AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
     AWS_STORAGE_BUCKET_NAME = 'clipboard-media'
@@ -167,3 +173,27 @@ else:
 
     DEFAULT_FILE_STORAGE = 'AnonymousClipboard.storage_backends.MediaStorage' 
 
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+       
+    ),
+     'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+    
+}
+
+
+OAUTH2_PROVIDER = {
+    # this is the list of available scopes
+    'SCOPES': {'read': 'Read scope', 'write': 'Write scope'}
+}
+
+AUTHENTICATION_BACKENDS = (
+    'oauth2_provider.backends.OAuth2Backend',
+    # Uncomment following if you want to access the admin
+    'django.contrib.auth.backends.ModelBackend',
+)
