@@ -22,13 +22,9 @@ idna==2.6
 jmespath==0.9.3
 kiwisolver==1.0.1
 macholib==1.9
-matplotlib==2.2.2
-nltk==3.2.5
-numpy==1.14.2
 oauthlib==2.0.7
 pefile==2017.11.5
 pew==1.1.2
-Pillow==5.0.0
 pipenv==10.1.0
 psycopg2==2.7.3.2
 pyasn1==0.4.2
