@@ -17,7 +17,7 @@ class Entry(models.Model):
 	session_id =  models.CharField(max_length=8,default=get_default_id, primary_key=True)
 	creation_time = models.DateTimeField(auto_now = True)
 	media_id = models.ForeignKey(MediaType, on_delete=models.CASCADE)
-
+	user = models.CharField(max_length=10, default="")
 
 
 class FileEntry(models.Model):

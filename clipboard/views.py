@@ -90,9 +90,9 @@ class EntryList(APIView):
         mt.save()
      
 
-        entry = Entry(media_id=mt)
+        entry = Entry(media_id=mt, user = request.user.get_username())
+
         entry.save()
-        s = None
         print("media_type", media_type)
         if media_type == 0:
             text = request.data["text"]
@@ -150,7 +150,8 @@ class EntryDetail(APIView):
             session_id = request.GET.get('session_id')
         print(session_id)
         entry = self.get_object(session_id=session_id)
-        if entry == None:
+        user = request.user.get_username()
+        if entry == None or entry.user != user:
             return JsonResponse({"error_message":"Invalid session-id"}, status=status.HTTP_409_CONFLICT)
 
         media_type = entry.media_id
@@ -286,6 +287,9 @@ class SignUp(APIView):
             return JsonResponse({'error_message':'Require username and password as form data'}, status=status.HTTP_401_UNAUTHORIZED)
 
         user = request.data['username']
+        if len(user) > 10:
+            return JsonResponse({'error_message': user + " is over 10 characters"}, status=status.HTTP_401_UNAUTHORIZED)
+
         print(user)
         try:
             userobj = User.objects.all().get(username=user)
