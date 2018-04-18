@@ -32,6 +32,7 @@ from oauth2_provider.views.generic import ProtectedResourceView
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication,TokenHasScope
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+
 class EntryMetaDataDetail(APIView):
     authentication_classes = [OAuth2Authentication]
     permission_classes = [TokenHasScope]
@@ -114,6 +115,10 @@ class EntryList(APIView):
                 return JsonResponse({'error_message':'File too large, 1MB limit'}, status=status.HTTP_409_CONFLICT)
     
             type, encoding = mimetypes.guess_type(request.data['file'].name)
+            match = re.search(r'application/.*', type)
+
+            if (match):
+                return JsonResponse({'error_message':'Invalid filetype'}, status=status.HTTP_409_CONFLICT)
 
             len(file)
             s = FileEntry(file= request.data["file"],entry_id = entry)
