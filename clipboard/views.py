@@ -25,6 +25,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.permissions import AllowAny
+from rest_framework.throttling import UserRateThrottle
+
 from oauth2_provider.models import Application
 from oauth2_provider.views.generic import ProtectedResourceView
 
@@ -37,7 +39,7 @@ class EntryMetaDataDetail(APIView):
     authentication_classes = [OAuth2Authentication]
     permission_classes = [TokenHasScope]
     required_scopes = ['read', 'write']
-    
+    throttle_classes = (UserRateThrottle,)
 
     def get_object(self, session_id):
         try:
@@ -68,7 +70,7 @@ class EntryList(APIView):
     authentication_classes = [OAuth2Authentication]
     permission_classes = [TokenHasScope]
     required_scopes = ['read', 'write']
-    
+    throttle_classes = (UserRateThrottle,)
 
     def get(self, request):
        return HttpResponse("no get")
@@ -134,11 +136,10 @@ class EntryList(APIView):
 
 #TODO Numbers represented as strings
 class EntryDetail(APIView):
-
     authentication_classes = [OAuth2Authentication]
     permission_classes = [TokenHasScope]
     required_scopes = ['read', 'write']
-    
+    throttle_classes = (UserRateThrottle,)
     """
     Retrieve, update or delete a snippet instance.
     """
@@ -238,11 +239,11 @@ def respond_as_attachment(request, file_path, original_filename, file_format):
     return response
 
 class TextEntryDetail(APIView):
-
     authentication_classes = [OAuth2Authentication]
     permission_classes = [TokenHasScope]
     required_scopes = ['read', 'write']
-    
+    throttle_classes = (UserRateThrottle,)
+
     """
     Retrieve, update or delete a snippet instance.
     """
@@ -259,15 +260,15 @@ class TextEntryDetail(APIView):
     
 
 class FileEntryDetail(APIView):
-
     authentication_classes = [OAuth2Authentication]
     permission_classes = [TokenHasScope]
     required_scopes = ['read', 'write']
+    throttle_classes = (UserRateThrottle,)
     
-
     """
     Retrieve, update or delete a snippet instance.
     """
+
     def get_object(self, session_id):
         try:
             return FileEntry.objects.get(entry_id=session_id)
