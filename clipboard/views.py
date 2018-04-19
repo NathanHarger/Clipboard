@@ -11,13 +11,12 @@ from clipboard.serializers import EntrySerializer, TextEntrySerializer, FileEntr
 
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render,redirect
-from django.http import HttpResponse,JsonResponse, Http404,FileResponse
+from django.http import HttpResponse,JsonResponse, Http404,StreamingHttpResponse
 from django.core import serializers
 from django.core.files.storage import default_storage
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
@@ -224,7 +223,7 @@ def respond_as_attachment(request, file_path, original_filename, file_format):
                 yield from f
 
             os.remove(file_path)
-        response = HttpResponse(generate())
+        response = StreamingHttpResponse(generate())
 
     #fp = open(file_path, 'rb')
     if file_format is None:
