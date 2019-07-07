@@ -13,7 +13,7 @@ django-heroku==0.2.0
 django-oauth-toolkit==1.0.0
 django-storages==1.6.5
 django-webpack-loader==0.5.0
-djangorestframework==3.7.7
+djangorestframework>=3.9.1
 docutils==0.14
 future==0.16.0
 gunicorn==19.7.1
@@ -33,12 +33,14 @@ PyInstaller==3.3.1
 pyparsing==2.2.0
 python-dateutil==2.6.1
 pytz==2017.3
+
 PyYAML==5.1
+
 requests>=2.20.0
 rsa==3.4.2
 s3transfer==0.1.13
 six==1.11.0
-urllib3==1.22
+urllib3>=1.24.2
 virtualenv==15.1.0
 virtualenv-clone==0.2.6
 whitenoise==3.3.1
