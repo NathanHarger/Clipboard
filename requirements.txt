@@ -28,7 +28,7 @@ pew==1.1.2
 pipenv==10.1.0
 psycopg2==2.7.3.2
 pyasn1==0.4.2
-Pygments==2.2.0
+Pygments==2.7.4
 PyInstaller>=3.6
 pyparsing==2.2.0
 python-dateutil==2.6.1
